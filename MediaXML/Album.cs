@@ -6,10 +6,12 @@ public class Album(int id, Artist artist, bool isAlbumArtist, string title, stri
 {
 	public int Id { get; set; } = id;
 	public int ArtistId => Artist.Id;
-	public bool AlbumArtistSpecified => isAlbumArtist;
 	public string Title { get; set; } = title;
 	public string Date { get; set; } = date;
 	public string Genre { get; set; } = genre;
+
+	[Ignore]
+	public bool AlbumArtistSpecified => isAlbumArtist;
 
 	[Ignore]
 	public Artist Artist { get; private set; } = artist;

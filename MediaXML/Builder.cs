@@ -4,8 +4,9 @@ internal class Builder(MPL mpl)
 {
 	private MPL mpl = mpl;
 
-	private Dictionary<string, Album> albumsDict = [];
-	private ArtistInfo artistInfo = new();
+	private readonly Dictionary<AlbumKey, Album> albumsDict = [];
+	private readonly ArtistInfo artistInfo = new();
+	private readonly List<Album> stackedAlbums = [];
 
 	private int nextAlbumId = 1;
 
@@ -22,6 +23,7 @@ internal class Builder(MPL mpl)
 			var album = GetOrCreateAlbum(fields);
 			Disc disc = album.GetOrCreateDisc(fields);
 			Track track = disc.AddTrack(fields, artistInfo);
+			CheckIfStacked(track, album);
 		}
 
 		foreach (var album in albumsDict.Values)
@@ -29,19 +31,48 @@ internal class Builder(MPL mpl)
 			album.CleanMultipleArtists(artistInfo);
 		}
 
+		if (stackedAlbums.Count > 0)
+		{
+			ErrorLogger.LogError($"The following {stackedAlbums.Count} albums have stacked tracks:");
+
+			var stackedByArtist = stackedAlbums.GroupBy(a => a.Artist.ToString()).OrderBy(g => g.Key);
+			foreach (var artistGroup in stackedByArtist)
+			{
+				//ErrorLogger.LogError($"- {artistGroup.Key}:");
+				foreach (var album in artistGroup.OrderBy(a => a.Title))
+				{
+					ErrorLogger.LogError($"- {album}");
+				}
+			}
+
+			//foreach (var album in stackedAlbums)
+			//{
+			//	ErrorLogger.LogError($"- {album})");
+			//}
+			ErrorLogger.LogError($"{stackedAlbums.Count} albums have stacked tracks.");
+			Console.WriteLine();
+		}
+
 		return true;
+	}
+
+	private void CheckIfStacked(Track track, Album album)
+	{
+		if (!track.IsStacked) return;
+		if (!stackedAlbums.Contains(album)) stackedAlbums.Add(album);
 	}
 
 	private Album GetOrCreateAlbum(FieldDictionary fields)
 	{
 		var albumTitle = fields.GetStringNotEmpty("Album");
-		if (!albumsDict.TryGetValue(albumTitle, out var album))
+		string albumDate = fields.GetString("Date (readable)");
+		var albumKey = new AlbumKey(albumTitle, albumDate);
+		if (!albumsDict.TryGetValue(albumKey, out var album))
 		{
-			string albumDate = fields.GetString("Date (readable)");
 			var albumGenre = fields.GetString("Genre");
 			var (artist, isAlbumArtist) = GetOrCreateArtist(fields);
 			album = new Album(nextAlbumId++, artist, isAlbumArtist, albumTitle, albumDate, albumGenre);
-			albumsDict[albumTitle] = album;
+			albumsDict[albumKey] = album;
 		}
 		return album;
 	}

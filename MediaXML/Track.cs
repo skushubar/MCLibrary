@@ -1,6 +1,8 @@
-﻿namespace MediaXML;
+﻿using CsvHelper.Configuration.Attributes;
 
-public class Track(int discId, short trackNumber, string name, int artistId, short rating, string filename)
+namespace MediaXML;
+
+public class Track(int discId, short trackNumber, string name, int artistId, short rating, string filename, bool isStacked)
 {
 	public int DiscId { get; set; } = discId;
 
@@ -13,5 +15,8 @@ public class Track(int discId, short trackNumber, string name, int artistId, sho
 	public short Rating { get; set; } = rating;
 
 	public string Filename { get; set; } = filename;
+
+	[Ignore]
+	public bool IsStacked { get; set; } = isStacked;
 
 }

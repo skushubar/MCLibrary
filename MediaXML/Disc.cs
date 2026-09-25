@@ -25,7 +25,8 @@ public class Disc(Album album, short discNumber)
 		var trackNumber = fields.GetShort("Track #");
 		if (trackNumber is null)
 			ErrorLogger.LogError($"Track number  is missing for track '{name}' on disc {DiscNumber} of album {Album}");
-		Track track = new(Id, trackNumber ?? -1, name, artist.Id, rating ?? -1, fields.GetStringNotEmpty("Filename"));
+		bool isStacked = fields.GetString("Stack Top") != "";
+		Track track = new(Id, trackNumber ?? -1, name, artist.Id, rating ?? -1, fields.GetStringNotEmpty("Filename"), isStacked);
 		Tracks.Add(track);
 		return track;
 	}
